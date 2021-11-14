@@ -1,0 +1,7 @@
+.DS_STORE
+
+vendor
+node_modules
+
+./boilerphp.modules
+

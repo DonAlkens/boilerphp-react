@@ -1,0 +1,27 @@
+Exceptions
+Seeder
+Transaction
+Pagination
+Events
+Cache
+Logger
+Email
+Config
+Subdomains
+Workbench
+RouteServices
+DeviceDetector
+API
+
+
+By Folders::
+Migrations
+
+Specify columns for ->all($columns = [*])
+
+Change load_static to loadStatic 
+Change helpers naming Convention to Camel case
+
+*Notes*: 
+Check if Where query is available on get all function.
+Add file function & timestamp function into Request class
