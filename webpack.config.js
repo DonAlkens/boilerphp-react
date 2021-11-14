@@ -2,18 +2,18 @@ const path = require("path");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
+const configurations = require('./appsettings.json').webpack;
 
 module.exports = {
-    mode: "development",
-    entry: "./src/index.jsx",
+    mode: configurations.mode,
+    entry: configurations.entry,
     output: {
-        filename: "js/main.js",
-        path: path.resolve(__dirname, "public")
+        filename: configurations.output.filename,
+        path: path.resolve(__dirname, configurations.output.path)
     },
     plugins: [
-        
         new MiniCssExtractPlugin({
-            filename: "css/[name].css"
+            filename: configurations.cache ? "css/[name].css" : "css/[name].[hash].css"
         }),
 
         new CleanWebpackPlugin(),
