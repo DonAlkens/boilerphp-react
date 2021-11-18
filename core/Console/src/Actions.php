@@ -128,14 +128,22 @@ class Actions extends ActionHelpers
 
         $table = $this->tableFormating($name);
 
-        $file_name = $table . "_table.php";
+        if($flag == "--alter" || $flag == "--a") 
+        {
+            $file_name = $table . ".php";
+            $component = "migration.alter";
+        }
+        else 
+        {
+            $file_name = $table . "_table.php";
+            $component = "migration";
+        }
+
         $this->path = $this->path("migration") . time() . "_" . $file_name;
-
-
         $this->checkMigrationExistent($file_name);
 
 
-        if ($this->configureMigration($table, $this->path))
+        if ($this->configureMigration($table, $this->path, $component))
         {
 
             if (isset($this->run_flag) && $this->run_flag) {

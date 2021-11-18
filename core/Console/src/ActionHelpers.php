@@ -11,6 +11,8 @@ use Console\Support\Interfaces\ActionHelpersInterface;
 
 class ActionHelpers implements ActionHelpersInterface {
 
+    public $arg_string = "";
+
     public $commands = array(
         "create", "start", "db", "activate", "disable"
     );
@@ -107,6 +109,7 @@ class ActionHelpers implements ActionHelpersInterface {
     public function flagConfig($flag, $name) 
     {
         $task = $this->flags[$flag];
+        $configuration = $this->configurations[$task];
 
         if($task == "controller") 
         { 
@@ -128,16 +131,16 @@ class ActionHelpers implements ActionHelpersInterface {
             }
 
             $path = $this->path($task).time()."_".$file_name;
+            $this->$configuration($name, $path, $component = "migration");
+            return;
         }
 
-        $configuration = $this->configurations[$task];
         $this->$configuration($name, $path);
 
     }
 
     public function checkExistent($path) 
     {
-
         if(file_exists($path))
         { 
             return true;
@@ -185,10 +188,12 @@ class ActionHelpers implements ActionHelpersInterface {
 
     /**
      * usage: configures notification structure and inital setup
+     * 
      * @param string notification_name
+     * 
      * @param string notification_path
      * 
-     * @return void;
+     * @return void
      */
 
     public function configureNotification($notification_name, $notification_path)
@@ -234,12 +239,16 @@ class ActionHelpers implements ActionHelpersInterface {
     
     /**
      * usage: configures migration structure and inital setup
+     * 
      * @param string migration_name
+     * 
      * @param string migration_path
+     * 
+     * @param string component
      */
-    public function configureMigration($migration_name, $migration_path) 
+    public function configureMigration($migration_name, $migration_path, $component) 
     {
-        $component_path = "./Core/Console/components/migration.component";
+        $component_path = "./Core/Console/components/$component.component";
         if($this->readComponent($component_path)) 
         {
             $class_name = ucfirst($migration_name);
@@ -255,10 +264,25 @@ class ActionHelpers implements ActionHelpersInterface {
                 $class_name = $new_cl_name;
             }
 
-            $this->module = preg_replace("/\[ClassName\]/",$class_name."Table", $this->component);
-            
-            $table_name = $migration_name;
+            if($component !== "migration.alter") 
+            {
+                $class_name .= "Table";
+                $table_name = $migration_name;
+            }
+            else 
+            {
+                $arg_explode = explode("|", $this->arg_string);
+                $end_arg = end($arg_explode);
 
+                if(preg_match("/\-\-/", $end_arg)) {
+                    echo "Table name is required";
+                    exit;
+                }
+    
+                $table_name = $end_arg;
+            }
+
+            $this->module = preg_replace("/\[ClassName\]/",$class_name, $this->component);
             $this->module = preg_replace("/\[TableName\]/", strtolower($table_name), $this->module);
 
             if($this->writeModule($migration_path)) 

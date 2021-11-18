@@ -23,10 +23,13 @@ interface ActionHelpersInterface {
     /**
      * Confirguring migration structure and initialize new migration  
      * @param migration_name
+     * 
      * @param migration_path
+     * 
+     * @param string component
      */
 
-    public function configureMigration($migration_name, $migration_path);
+    public function configureMigration($migration_name, $migration_path, $component);
 
     /**
      * Confirguring controller structure and initialize new controller 
