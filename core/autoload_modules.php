@@ -35,14 +35,16 @@ class AppModules {
         ],
     
         "database" => [
-            "Database::DataTypes",
             "Database::QueryBuilder",
             "Database::Connection",
             "Database::Schema",
             "Database::Relations",
             "Database::Model",
+            "Database::Seeder",
+            "Database::Migration::DataTypes",
             "Database::Migration::ColumnDefination",
             "Database::Migration::Diagram",
+            "Database::Migration::MigrationInterface",
             "Database::Migration::Table",
             "Database::Migration::Migration",
             "Database::Console::MigrationReflection"
@@ -116,6 +118,7 @@ class AppModules {
     {
         if(!empty($module))
         {
+            $module = trim($module);
             array_push($this->user_modules, $module);
         }
     }
