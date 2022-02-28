@@ -6,7 +6,6 @@ class AppModules {
     public $configs = 
     [
         "configs::App",
-        "configs::ErrorsConfig",
         "configs::RoutesConfig",
         "configs::ViewsConfig",
         "configs::MailConfig",
@@ -35,13 +34,13 @@ class AppModules {
         ],
     
         "database" => [
+            "Database::DataTypes",
             "Database::QueryBuilder",
             "Database::Connection",
             "Database::Schema",
             "Database::Relations",
             "Database::Model",
             "Database::Seeder",
-            "Database::Migration::DataTypes",
             "Database::Migration::ColumnDefination",
             "Database::Migration::Diagram",
             "Database::Migration::MigrationInterface",
