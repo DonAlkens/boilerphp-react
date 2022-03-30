@@ -14,7 +14,7 @@ module.exports = {
     },
     plugins: [
         new MiniCssExtractPlugin({
-            filename: configurations.cache ? "css/[name].css" : "css/[name].[hash].css"
+            filename: configurations.cache ? "css/[name].css" : "css/[name].[contenthash].css"
         }),
 
     new CleanWebpackPlugin(),
