@@ -1,7 +1,7 @@
 {
-  "name": "boilerphp-react",
+  "name": "wearslot-store",
   "version": "1.0.0",
-  "description": "A Simple & Scaleable Web Framework For PHP React Developers",
+  "description": "A store manager app for wearslot store owners",
   "main": "index.js",
   "private": true,
   "scripts": {
@@ -42,7 +42,10 @@
     "webpack-external-react": "^1.1.52"
   },
   "dependencies": {
+    "axios": "^0.26.1",
     "bootstrap": "^5.1.3",
-    "clean-webpack-plugin": "^4.0.0"
+    "clean-webpack-plugin": "^4.0.0",
+    "jquery": "^3.6.0",
+    "react-router-dom": "^6.3.0"
   }
 }
