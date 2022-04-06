@@ -9,3 +9,4 @@ use App\Core\Urls\Route;
  * */
 
 Route::get("/", "BaseController::index")->as("home");
+Route::get('/products', 'BaseController::index')->as('products');

@@ -3,9 +3,9 @@ import AppLayout from '../Shared/Layouts/AppLayout';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 
+
 export default function Dashboard(props) {
 
-    const token = localStorage.getItem('token');
     // const user = JSON.parse(localStorage.getItem('user'));
 
     useEffect(() => {
@@ -22,7 +22,6 @@ export default function Dashboard(props) {
         <AppLayout>
             <div className="page-content">
                 <div className="container-fluid">
-
                     <div className="row">
                         <div className="col">
 
@@ -1294,9 +1293,7 @@ export default function Dashboard(props) {
 
                         </div> 
                     </div>
-
                 </div>
-                
             </div>
         </AppLayout>
     );

@@ -7,10 +7,10 @@ import '../public/assets/js/app';
 import axios from 'axios';
 
 axios.defaults.baseURL = 'http://wearslot.now/api';
-axios.defaults.headers.common['Authorization'] = 'Bearer '+ localStorage.getItem('token');
-axios.defaults.headers.common['Accept'] = 'application/json';
-
-
+axios.defaults.headers.common = {
+  'Authorization': 'Bearer '+ localStorage.getItem('token'),
+  'Accept': 'application/json'
+};
 
 ReactDOM.render(
     <React.StrictMode>
