@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import logo from '../../../../../marketplace/public/image/logos/wearslot/logo.png';
 import Icon from "./Icon";
 
-export default function LogoLight() {
+const LogoLight = () => {
   return (
     <Link to="/" className="logo logo-light">
       <Icon />
@@ -14,3 +14,6 @@ export default function LogoLight() {
     </Link>
   );
 };
+
+
+export default LogoLight;

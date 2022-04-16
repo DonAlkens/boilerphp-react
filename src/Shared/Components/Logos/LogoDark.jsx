@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import logo from '../../../../../marketplace/public/image/logos/wearslot/logo-color.png';
 import Icon from "./Icon";
 
-export default function LogoDark() {
+const LogoDark = () => {
   return (
     <Link to="/" className="logo logo-dark">
       <Icon/>
@@ -15,3 +15,4 @@ export default function LogoDark() {
   );
 };
 
+export default LogoDark;

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import LogoDark from "./Logos/LogoDark";
 import LogoLight from "./Logos/LogoLight";
 
-export default function NavMenu() {
+const NavMenu = () => {
   return (
     <div className="app-menu navbar-menu">
       <div className="navbar-brand-box">
@@ -134,3 +134,5 @@ export default function NavMenu() {
     </div>
   );
 }
+
+export default NavMenu;

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import LogoDark from "./Logos/LogoDark";
 import LogoLight from "./Logos/LogoLight";
 
-export default function Header() {
+const Header = () => {
   return (
     <header id="page-topbar">
       <div className="layout-width">
@@ -1241,7 +1241,7 @@ export default function Header() {
                 </Link>
                 <Link className="dropdown-item" to="auth-logout-basic.html">
                   <i className="mdi mdi-logout text-muted fs-16 align-middle me-1"></i>{" "}
-                  <span className="align-middle" data-key="t-logout">
+                  <span className="align-middle">
                     Logout
                   </span>
                 </Link>
@@ -1253,3 +1253,5 @@ export default function Header() {
     </header>
   );
 };
+
+export default Header;

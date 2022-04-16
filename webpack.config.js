@@ -81,7 +81,8 @@ module.exports = {
 		React: "react",
 	},
 	stats: {
-		assets: false,
+		children: true,
+		// assets: false,
 		moduleAssets: false,
 		cachedModules: false,
 	},
