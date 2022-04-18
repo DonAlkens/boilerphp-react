@@ -1,19 +1,13 @@
 import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { FiTrash2 } from "react-icons/fi";
-import TextField from "@material-ui/core/TextField";
-import Chip from "@material-ui/core/Chip";
-import Autocomplete, {
-  createFilterOptions,
-} from "@material-ui/lab/Autocomplete";
 import { removeVariation } from "../libs/app";
+import CreatableSingle from "./CreateAbleSelect";
+import CreatableInputOnly from "./CreatableInputOnly";
 
-const filter = createFilterOptions();
-
-const VariationField = (props) => {
+const VariationField = ({ id, extractVariants, extractOptions }) => {
   const [variationTypes, setVariationTypes] = useState([]);
-  const options = ["One", "Two", "Three", "Four", "Five"];
-
+  
   const getVariationTypes = () => {
     axios
       .get("/a/get-variations")
@@ -39,64 +33,26 @@ const VariationField = (props) => {
         <div className="row">
           <div className="col-md-3 p-1">
             <div className="form-group">
-              <select className="form-control variations" name="variations[]">
-                {/* <option defaultValue>**select**</option> */}
+              {/* <select className="form-control variations" name="variations[]">
                 {variationTypes?.map((type, index) => {
                   return (
-                    <option value={type.id} key={index}>
-                      {type.name}
-                    </option>
+                    <option value={type.id} key={index}>{type.name}</option>
                   );
                 })}
-              </select>
+              </select> */}
+              <CreatableSingle extractVariants={extractVariants} id={id} />
             </div>
           </div>
           <div className="col-md-8 p-1">
             <div className="form-group">
-              {/* <Autocomplete
-                multiple
-                freeSolo
-                style={{ height: 40, maxHeight: 40 }}
-                filterOptions={(options, params) => {
-                  const filtered = filter(options, params);
-                  // Suggest the creation of a new value
-                  if (params.inputValue !== "") {
-                    filtered.push(`Add "${params.inputValue}"`);
-                  }
-                  return filtered;
-                }}
-                selectOnFocus
-                clearOnBlur
-                handleHomeEndKeys
-                options={options}
-                // defaultValue={[options[2]]}
-                renderTags={(value, getTagProps) =>
-                  value.map((option, index) => (
-                    <Chip
-                      variant="outlined"
-                      label={option}
-                      {...getTagProps({ index })}
-                    />
-                  ))
-                }
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    className="form-control"
-                    variant="outlined"
-                    label="Options"
-                    placeholder="Enter options"
-                    name="variation_options[]"
-                  />
-                )}
-              /> */}
-              <textarea
+              <CreatableInputOnly extractOptions={extractOptions} id={id} />
+              {/* <textarea
                 style={{ maxHeight: 40 }}
                 name="variation_options[]"
                 className="form-control var_name"
                 api-variation-creator=""
                 placeholder="options"
-              ></textarea>
+              ></textarea> */}
             </div>
           </div>
           <div className="col-md-1 rmVar p-1">

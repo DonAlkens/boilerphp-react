@@ -1,4 +1,5 @@
 import axios from "axios";
+import flatpickr from "flatpickr";
 import React, { useEffect, useState } from "react";
 import { Outlet, useParams } from "react-router-dom";
 import MyDropzone from "../Components/MyDropZone";
@@ -10,6 +11,7 @@ import ValidateSubmit, {
   removeVariation,
 } from "../libs/app";
 import VariationField from "../Components/VariationField";
+import { event } from "jquery";
 
 const ProductUpload = (props) => {
   const { product_id } = useParams();
@@ -22,8 +24,15 @@ const ProductUpload = (props) => {
   const [collections, setCollections] = useState([]);
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubCategories] = useState([]);
-  const [variation, setVariationMode] = useState(false);
-  const [varSkeleton, setVarSkeleton] = useState(null);
+  const [variants, setVariants] = useState([]);
+  const [variations, setVariations] = useState([]);
+  const [variation_count, setVariationCount] = useState(0);
+
+  const [formatted, setFormatted] = useState([]);
+
+  const [publish, setPublish] = useState(true);
+
+  flatpickr("#datepicker-publish-input", {});
 
   const getCollections = () => {
     axios
@@ -72,18 +81,78 @@ const ProductUpload = (props) => {
     if (props.mode == "new") {
       checkImagesInLocalStorage();
     }
-  }, []);
 
-  const activateVariationMode = () => {
-    setVariationMode(true);
-
-    let skeleton = $(".VarSkeleton").html();
-    setVarSkeleton(skeleton);
-  };
+    formatVariations();
+  }, [variations]);
 
   const addVariation = () => {
-    $(".VariationsBox").append(varSkeleton);
-    removeVariation();
+    var count = variation_count + 1;
+    setVariationCount(count);
+  };
+
+  const extractOptions = (index, value) => {
+    let vari = [...variations];
+    vari[index] = value;
+    setVariations(vari);
+  };
+
+  const extractVariants = (index, value) => {
+    let variant = [...variants];
+    variant[index] = value;
+    setVariants(variant);
+  };
+
+  const formatVariations = () => {
+    var formats = [];
+
+    variations?.map((options, index) => {
+      let group = variants[index];
+      let value = options;
+
+      if (group && options.length > 0) {
+        let variation_holder = [],
+          counter = 0;
+
+        if (index == 0) {
+          value?.map((details, index) => {
+            if (!(formats.indexOf(details) > -1)) {
+              formats[index] = details;
+            }
+          });
+        } else {
+          formats.map((format, i) => {
+            // console.log("Format", format);
+
+            value?.map((details, j) => {
+              var mapped = {
+                value: format.value + "/" + details.value,
+                label: format.label + "/" + details.label,
+              };
+
+              // console.log(mapped);
+
+              if (!(variation_holder.indexOf(mapped) > -1)) {
+                variation_holder[counter] = mapped;
+
+                counter++;
+              }
+            });
+          });
+
+          formats = variation_holder;
+          // console.log("Holder", variation_holder);
+        }
+      }
+    });
+    setFormatted(formats);
+  };
+
+  const handlePublishChange = (e) => {
+    if ($(e.target).prop("checked") == true) {
+      setPublish(true);
+    } else {
+      setPublish(false);
+    }
   };
 
   const handleCollectionChange = async (e) => {
@@ -92,7 +161,10 @@ const ProductUpload = (props) => {
       var id = e.target.value;
       var response = axios.get(`/a/get-categories/${id}`);
       var categories = (await response).data;
-      setCategories(categories);
+      if (categories.length > 0) {
+        setCategories(categories);
+        setSubCategories([]);
+      }
     } catch (error) {
       console.log(error);
     }
@@ -110,9 +182,11 @@ const ProductUpload = (props) => {
     }
   };
 
-  const handleDetailsChange = (e) => {};
+  const saveAsDraft = () => {
+    handleProductSubmit(event, true);
+  };
 
-  const handleProductSubmit = (e) => {
+  const handleProductSubmit = (e, draft = false) => {
     e.preventDefault();
 
     if (ValidateSubmit(false, true)) {
@@ -121,6 +195,9 @@ const ProductUpload = (props) => {
       toggleLoader(true);
 
       var formdata = new FormData(document.getElementById("ProductUploadForm"));
+      formdata.append("description", description);
+      formdata.append("publish", publish);
+
       var data = formdata;
       console.log(formdata);
 
@@ -181,12 +258,9 @@ const ProductUpload = (props) => {
             </div>
           </div>
 
-          <div className="row">
-            <div className="col-lg-8">
-              <form
-                id="ProductUploadForm"
-                onSubmit={(e) => handleProductSubmit(e)}
-              >
+          <form id="ProductUploadForm" onSubmit={(e) => handleProductSubmit(e)}>
+            <div className="row">
+              <div className="col-lg-8">
                 {product?.id !== null ? (
                   <input type={"hidden"} name="id" defaultValue={product?.id} />
                 ) : null}
@@ -202,6 +276,9 @@ const ProductUpload = (props) => {
                       <input
                         type="text"
                         name="name"
+                        validatefield="true"
+                        validationoutput="#titleError"
+                        validationmessage="Product title cannot be empty!*"
                         defaultValue={product?.name}
                         onChange={(e) => {
                           handleDetailsChange(e);
@@ -210,9 +287,10 @@ const ProductUpload = (props) => {
                         id="product-title-input"
                         placeholder="Enter product title"
                       />
+                      <span id="titleError"></span>
                     </div>
                     <div>
-                      <label>Product Description</label>
+                      <label>Product Description </label>
                       <TextEditor
                         description={description}
                         setDescription={setDescription}
@@ -255,7 +333,10 @@ const ProductUpload = (props) => {
                           {images?.gallery?.length > 0 ? (
                             <>
                               {images?.gallery?.map((image, index) => (
-                                <div className="col-md-4 p-0 ps-1 pe-1" key={index}>
+                                <div
+                                  className="col-md-4 p-0 ps-1 pe-1"
+                                  key={index}
+                                >
                                   <div className="img-thumb">
                                     <div className="bg-light rounded">
                                       <img
@@ -446,7 +527,11 @@ const ProductUpload = (props) => {
                                       placeholder="Enter price"
                                       aria-label="Price"
                                       aria-describedby="product-price-addon"
+                                      validatefield="true"
+                                      validationoutput="#priceError"
+                                      validationmessage="required*"
                                     />
+                                    <span id="priceError"></span>
                                   </div>
                                 </div>
                               </div>
@@ -628,78 +713,58 @@ const ProductUpload = (props) => {
                   </div>
 
                   <div className="card-body">
-                    <div
-                      className={
-                        "VariationsBox p-2 " +
-                        (variation == true ? "show" : "hide")
-                      }
-                    >
-                      <div className="VarSkeleton">
-                        <VariationField />
-                      </div>
+                    <div className="VariationsBox p-2 ">
+                      {[...Array(variation_count)].map((count, index) => {
+                        return (
+                          <VariationField
+                            extractVariants={extractVariants}
+                            extractOptions={extractOptions}
+                            id={index}
+                            key={index}
+                          />
+                        );
+                      })}
                     </div>
                     <div className="mb-2">
                       <button
                         type="button"
-                        onClick={activateVariationMode}
-                        className={
-                          "btn btn-secondary w-sm " +
-                          (variation == true ? "hide" : "show")
-                        }
-                      >
-                        Add Variations
-                      </button>
-                      <button
-                        type="button"
                         onClick={addVariation}
-                        className={
-                          "btn btn-secondary w-sm " +
-                          (variation == true ? "show" : "hide")
-                        }
+                        className="btn btn-secondary w-sm "
                       >
                         Add Variations
                       </button>
                     </div>
+
+                    {/* Variation List Section */}
                   </div>
                 </div>
+              </div>
 
-                <div className="text-end mb-3">
-                  <button type="submit" className="btn btn-success w-sm">
-                    {props.mode == "new" ? "Save & Continue" : "Save Changes"}
-                  </button>
-                </div>
-              </form>
-            </div>
-
-            <div className="col-lg-4">
-              <div className="card">
-                <div className="card-header">
-                  <h5 className="card-title mb-0">Publish Settings</h5>
-                </div>
-                <div className="card-body">
-                  <div className="mb-3">
-                    <label
-                      htmlFor="choices-publish-status-input"
-                      className="form-label"
-                    >
-                      Availability
-                    </label>
-
-                    <select
-                      className="form-select"
-                      id="choices-availabity-status-input"
-                      data-choices
-                      data-choices-search-false
-                    >
-                      <option defaultValue="Available In Store">
-                        Available In Store
-                      </option>
-                      <option value="Scheduled">Made on Request</option>
-                      <option value="Not Available">Not Available</option>
-                    </select>
+              <div className="col-lg-4">
+                <div className="card">
+                  <div className="card-header">
+                    <h5 className="card-title mb-0">Publish Settings</h5>
                   </div>
+                  <div className="card-body">
+                    <div className="mb-3">
+                      <label htmlFor="availability" className="form-label">
+                        Availability
+                      </label>
 
-                  {/* <div className="mb-3">
+                      <select
+                        className="form-select"
+                        name="availability"
+                        id="availability"
+                        data-choices
+                        data-choices-search-false
+                      >
+                        <option value={1}>Available In Store</option>
+                        <option value={2}>Made on Request</option>
+                        <option value={3}>Not Available</option>
+                      </select>
+                    </div>
+
+                    {/* <div className="mb-3">
                     <label
                       htmlFor="choices-publish-status-input"
                       className="form-label"
@@ -719,196 +784,250 @@ const ProductUpload = (props) => {
                     </select>
                   </div> */}
 
-                  <div>
-                    <label
-                      htmlFor="choices-publish-visibility-input"
-                      className="form-label"
-                    >
-                      Visibility
-                    </label>
-                    <select
-                      className="form-select"
-                      id="choices-publish-visibility-input"
-                      data-choices
-                      data-choices-search-false
-                    >
-                      <option defaultValue="Public">Public</option>
-                      <option value="Hidden">Hidden</option>
-                    </select>
-                  </div>
+                    <div>
+                      <label htmlFor="visibility" className="form-label">
+                        Visibility
+                      </label>
+                      <select
+                        className="form-select"
+                        name="visibility"
+                        id="visibility"
+                        data-choices
+                        data-choices-search-false
+                      >
+                        {product?.hide == 0 ? (
+                          <option value={0} defaultValue>
+                            Public
+                          </option>
+                        ) : (
+                          <option value={0}>Public</option>
+                        )}
 
-                  <div className="mt-3">
+                        {product?.hide == 1 ? (
+                          <option value={1} defaultValue>
+                            Hidden
+                          </option>
+                        ) : (
+                          <option value={1}>Hidden</option>
+                        )}
+                      </select>
+                    </div>
+
+                    <div className="mt-3">
+                      <div className="form-check">
+                        <input
+                          onChange={(e) => handlePublishChange(e)}
+                          className="form-check-input"
+                          type="checkbox"
+                          id="formCheck2"
+                          defaultChecked
+                        />
+                        <label
+                          className="form-check-label"
+                          htmlFor="formCheck2"
+                        >
+                          Publish to Marketplace
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* <div className="mt-3">
                     <div className="d-grid">
                       <button type="submit" className="btn btn-primary w-sm">
                         Publish
                       </button>
                     </div>
+                  </div> */}
                   </div>
                 </div>
-              </div>
 
-              <div className="card">
-                <div className="card-header">
-                  <h5 className="card-title mb-0">Publish Schedule</h5>
-                </div>
-
-                <div className="card-body">
-                  <div>
-                    <label
-                      htmlFor="datepicker-publish-input"
-                      className="form-label"
-                    >
-                      Publish Date & Time
-                    </label>
-                    <input
-                      type="text"
-                      id="datepicker-publish-input"
-                      className="form-control"
-                      placeholder="Enter publish date"
-                      data-provider="flatpickr"
-                      data-date-format="d.m.y"
-                      data-enable-time
-                    />
+                <div className="card">
+                  <div className="card-header">
+                    <h5 className="card-title mb-0">Publish Schedule</h5>
                   </div>
-                </div>
-              </div>
 
-              <div className="card">
-                <div className="card-header">
-                  <h5 className="card-title mb-0">Product Categories</h5>
-                </div>
-                <div className="card-body">
-                  <div className="mb-2">
-                    <p className="text-muted mb-2">
-                      <a
-                        href="#"
-                        className="float-end text-decoration-underline"
+                  <div className="card-body">
+                    <div>
+                      <label
+                        htmlFor="datepicker-publish-input"
+                        className="form-label"
                       >
-                        Add New
-                      </a>
-                      Select collection
-                    </p>
-                    <select
-                      className="form-select"
-                      name="collection"
-                      onChange={(e) => {
-                        handleCollectionChange(e);
-                      }}
-                      data-choices
-                      data-choices-search-false
-                      data-choices-sorting="true"
-                    >
-                      <option defaultValue="">Select..</option>
-                      {collections?.map((collection, index) => (
-                        <option value={collection.id} key={index}>
-                          {collection.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div
-                    className={
-                      "mb-2 " + (categories.length > 0 ? "show" : "hide")
-                    }
-                  >
-                    <p className="text-muted mb-2">
-                      <a
-                        href="#"
-                        className="float-end text-decoration-underline"
-                      >
-                        Add New
-                      </a>
-                      Select category
-                    </p>
-                    <select
-                      className="form-select"
-                      name="category"
-                      onChange={(e) => {
-                        handleCategoriesChange(e);
-                      }}
-                      data-choices
-                      data-choices-search-false
-                      data-choices-sorting="true"
-                    >
-                      <option defaultValue="">Select..</option>
-                      {categories?.map((category, index) => (
-                        <option value={category.id} key={index}>
-                          {category.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div
-                    className={
-                      "mb-2 " + (subcategories.length > 0 ? "show" : "hide")
-                    }
-                  >
-                    <p className="text-muted mb-2">
-                      <a
-                        href="#"
-                        className="float-end text-decoration-underline"
-                      >
-                        Add New
-                      </a>
-                      Select sub-category
-                    </p>
-                    <select
-                      className="form-select"
-                      name="sub_category"
-                      data-choices
-                      data-choices-search-false
-                      data-choices-sorting="true"
-                    >
-                      <option defaultValue="">Select..</option>
-                      {subcategories?.map((category, index) => (
-                        <option value={category.id} key={index}>
-                          {category.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <div className="card">
-                <div className="card-header">
-                  <h5 className="card-title mb-0">Product Tags</h5>
-                </div>
-                <div className="card-body">
-                  <div className="hstack gap-3 align-items-start">
-                    <div className="flex-grow-1">
+                        Publish Date & Time
+                      </label>
                       <input
-                        name="tags"
-                        className="form-control"
-                        data-choices
-                        data-choices-multiple-remove="true"
-                        placeholder="Enter tags"
                         type="text"
-                        defaultValue=""
-                        onChange={(e) => {}}
+                        name="publish_schedule"
+                        id="datepicker-publish-input"
+                        className="form-control"
+                        placeholder="Enter publish date"
+                        data-provider="flatpickr"
+                        data-date-format="d.m.y"
+                        data-enable-time
                       />
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="card">
-                <div className="card-header">
-                  <h5 className="card-title mb-0">Product Short Description</h5>
+                <div className="card">
+                  <div className="card-header">
+                    <h5 className="card-title mb-0">Product Categories</h5>
+                  </div>
+                  <div className="card-body">
+                    <div className="mb-2">
+                      <p className="text-muted mb-2">
+                        <a
+                          href="#"
+                          className="float-end text-decoration-underline"
+                        >
+                          Add New
+                        </a>
+                        Select collection
+                      </p>
+                      <select
+                        className="form-select"
+                        name="collection"
+                        id="collection"
+                        onChange={(e) => {
+                          handleCollectionChange(e);
+                        }}
+                        data-choices
+                        data-choices-search-false
+                        data-choices-sorting="true"
+                      >
+                        <option defaultValue="">Select..</option>
+                        {collections?.map((collection, index) => (
+                          <option value={collection.id} key={index}>
+                            {collection.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div
+                      className={
+                        "mb-2 " + (categories.length > 0 ? "show" : "hide")
+                      }
+                    >
+                      <p className="text-muted mb-2">
+                        <a
+                          href="#"
+                          className="float-end text-decoration-underline"
+                        >
+                          Add New
+                        </a>
+                        Select category
+                      </p>
+                      <select
+                        className="form-select"
+                        name="category"
+                        id="category"
+                        onChange={(e) => {
+                          handleCategoriesChange(e);
+                        }}
+                        data-choices
+                        data-choices-search-false
+                        data-choices-sorting="true"
+                      >
+                        <option defaultValue="">Select..</option>
+                        {categories?.map((category, index) => (
+                          <option value={category.id} key={index}>
+                            {category.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div
+                      className={
+                        "mb-2 " + (subcategories.length > 0 ? "show" : "hide")
+                      }
+                    >
+                      <p className="text-muted mb-2">
+                        <a
+                          href="#"
+                          className="float-end text-decoration-underline"
+                        >
+                          Add New
+                        </a>
+                        Select sub-category
+                      </p>
+                      <select
+                        className="form-select"
+                        name="sub_category"
+                        id="sub_category"
+                        data-choices
+                        data-choices-search-false
+                        data-choices-sorting="true"
+                      >
+                        <option defaultValue="">Select..</option>
+                        {subcategories?.map((category, index) => (
+                          <option value={category.id} key={index}>
+                            {category.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
                 </div>
-                <div className="card-body">
-                  <p className="text-muted mb-2">
-                    Add short description for product
-                  </p>
-                  <textarea
-                    className="form-control"
-                    placeholder="Must enter minimum of a 100 characters"
-                    rows="3"
-                  ></textarea>
+
+                <div className="card">
+                  <div className="card-header">
+                    <h5 className="card-title mb-0">Product Tags</h5>
+                  </div>
+                  <div className="card-body">
+                    <div className="hstack gap-3 align-items-start">
+                      <div className="flex-grow-1">
+                        <input
+                          name="tags"
+                          className="form-control"
+                          data-choices
+                          data-choices-multiple-remove="true"
+                          placeholder="Enter tags"
+                          type="text"
+                          defaultValue=""
+                          onChange={(e) => {}}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="card">
+                  <div className="card-header">
+                    <h5 className="card-title mb-0">
+                      Product Short Description
+                    </h5>
+                  </div>
+                  <div className="card-body">
+                    <p className="text-muted mb-2">
+                      Add short description for product
+                    </p>
+                    <textarea
+                      className="form-control"
+                      placeholder="Must enter minimum of a 100 characters"
+                      rows="3"
+                    ></textarea>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+            <div className="row">
+              <div className="col-md-8">
+                <div className="text-end mb-3">
+                  <button type="submit" className="btn btn-success w-sm">
+                    {props.mode == "new" ? "Create Product" : "Save Changes"}
+                  </button>
+                  {props.mode == "new" ? (
+                    <button
+                      type="button"
+                      onClick={saveAsDraft}
+                      className="btn ms-1 btn-primary w-sm"
+                    >
+                      Save Draft
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          </form>
         </div>
       </div>
       <Outlet />

@@ -7,7 +7,7 @@ import { BrowserRouter } from 'react-router-dom';
 
 window.$ = require('jquery');
 window.isource = 'http://isource.wearslot.now/images/';
-axios.defaults.baseURL = "http://wearslot.now/api";
+axios.defaults.baseURL = window.base_url = "http://wearslot.now/api";
 axios.defaults.headers.common = {
   Authorization: "Bearer " + localStorage.getItem("token"),
   Accept: "application/json",
